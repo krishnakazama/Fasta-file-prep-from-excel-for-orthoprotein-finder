@@ -9,7 +9,7 @@ setwd("your/path/")
 list.files()
 
 # Read the excel file 
-df <- read_excel("yourFile.xlsx") 
+df <- read_excel("Example.xlsx") #File content and header are provided in Example.xlsx change according to the users need  
 
 # Define the output directory
 base_output_dir <- "OrthoFinder_FamilyWise_FASTAs"
