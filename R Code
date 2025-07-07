@@ -1,0 +1,45 @@
+# Load necessary library 
+library(dplyr)
+library(readxl)
+library(stringr)
+library(purrr)
+
+# Set path and check the files 
+setwd("your/path/")
+list.files()
+
+# Read the excel file 
+df <- read_excel("yourFile.xlsx") 
+
+# Define the output directory
+base_output_dir <- "OrthoFinder_FamilyWise_FASTAs"
+dir.create(base_output_dir, showWarnings = FALSE)
+
+# Split by family and loop
+df %>%
+  group_by(family) %>%
+  group_split() %>%
+  walk(function(fam_df) {
+    
+    # use base_output_dir inside the function scope
+    fam_name <- unique(fam_df$family)
+    fam_dir <- file.path(base_output_dir, paste0("Family_", fam_name))
+    dir.create(fam_dir, showWarnings = FALSE)
+    
+    # Split by species inside family
+    fam_df %>%
+      group_by(species) %>%
+      group_split() %>%
+      walk(function(sp_df) {
+        
+        sp_name <- unique(sp_df$species)
+        sp_file <- paste0(str_replace_all(sp_name, "\\s+", "_"), ".fasta")
+        sp_path <- file.path(fam_dir, sp_file)
+        
+        # Create FASTA format
+        fasta_lines <- map2_chr(sp_df$qseqid, sp_df$Seq, ~paste0(">", .x, "\n", .y))
+        writeLines(fasta_lines, sp_path)
+        
+        cat("Written:", sp_path, "\n")
+      })
+  })
